@@ -200,7 +200,6 @@ def test(model):
     model.eval()
     correct = 0
     count = 0;
-    test_loss = 0.
     with open(os.path.join('data', "v{}_mfcc".format(version), "test.pkl"), 'rb') as f:
         dataset_chunk = pickle.load(f)
         for tuple in dataset_chunk:
@@ -210,15 +209,13 @@ def test(model):
 
             with torch.no_grad():
                 output = model(data)
-            test_loss += loss_fn(output.squeeze(), target).item()
-            count += 1
+            count += target.shape[-1]
 
             pred = get_likely_index(output)
             correct += number_of_correct(pred, target)
     
-    test_loss /= count
-    print(f"\nTest Accuracy: {correct}/{(512*6)} ({100. * correct / (512*6):.1f}%)\tLoss: {test_loss}")
-    return correct/(512*6)
+    print(f"Test Accuracy: {correct}/{(count)} ({100. * correct / (count):.1f}%)")
+    return correct/(count)
 
 model.load_state_dict(torch.load(os.path.join('results', args.experiment, 'best.pth'))['model_state_dict'])
 test_acc = test(model)

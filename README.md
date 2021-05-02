@@ -14,18 +14,19 @@ cd kws-transformer
 
 Create the google-speech-commands folder and download and extract the google-speech-commands dataset:
 ```bash
-mkdir google-speech-commands
-cd google-speech-commands
+mkdir data
+mkdir data/google-speech-commands
+cd data/google-speech-commands
 mkdir data1 data2
 wget https://storage.googleapis.com/download.tensorflow.org/data/speech_commands_v0.01.tar.gz
 wget https://storage.googleapis.com/download.tensorflow.org/data/speech_commands_v0.02.tar.gz
 tar -xzf speech_commands_v0.01.tar.gz -C data1
 tar -xzf speech_commands_v0.02.tar.gz -C data2
 rm speech_commands_v0.01.tar.gz speech_commands_v0.02.tar.gz
-cd ..
+cd ../..
 ```
 
-Clone the `kws_streaming` subdirectory in the google-research folder: 
+Clone the `kws_streaming` subdirectory in the google-research repository: 
 ```bash
 svn export https://github.com/google-research/google-research/trunk/kws_streaming
 ```

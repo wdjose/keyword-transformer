@@ -11,12 +11,10 @@ import gc
 import argparse
 
 from models import vit
-from utils.label_smoothing import LabelSmoothingLoss
 
 parser = argparse.ArgumentParser()
 parser.add_argument("experiment", help="Experiment name")
 parser.add_argument("--num-heads", default=1, type=int, help="Number of heads in transformer architecture")
-parser.add_argument("--no-label-smooth", action="store_false", help="Don't use label smoothing loss")
 parser.add_argument("--distill", action="store_true", help="Use distillation token")
 parser.add_argument("--version", default=1, type=int, choices=[1, 2], help="Google speech commands version (1 or 2)")
 parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"], help="Device to run on (cuda vs cpu)")
@@ -62,12 +60,8 @@ model = vit.ViT(img_x=img_x, img_y=img_y, patch_x=patch_x,
     heads=heads, mlp_dim=mlp_dim, pool='cls', channels=1, 
     dim_head=dim_head, dropout=0., emb_dropout=0.)
 
-print(device)
 model.to(device)
 
-loss_fn = F.cross_entropy
-if not args.no_label_smooth:
-    loss_fn = LabelSmoothingLoss(num_classes, 0.1).to(device)
 
 def number_of_correct(pred, target):
     return pred.squeeze().eq(target).sum().item()
@@ -84,7 +78,6 @@ def test(model):
     model.eval()
     correct = 0
     count = 0;
-    test_loss = 0.
     with open(os.path.join('data', "v{}_mfcc".format(version), "test.pkl"), 'rb') as f:
         dataset_chunk = pickle.load(f)
         for tuple in dataset_chunk:
@@ -94,15 +87,13 @@ def test(model):
 
             with torch.no_grad():
                 output = model(data)
-            test_loss += loss_fn(output.squeeze(), target).item()
-            count += 1
+            count += target.shape[-1]
 
             pred = get_likely_index(output)
             correct += number_of_correct(pred, target)
     
-    test_loss /= count
-    print(f"\nTest Accuracy: {correct}/{(512*6)} ({100. * correct / (512*6):.1f}%)\tLoss: {test_loss}")
-    return correct/(512*6)
+    print(f"Test Accuracy: {correct}/{(count)} ({100. * correct / (count):.1f}%)")
+    return correct/(count)
 
 model.load_state_dict(torch.load(os.path.join('results', args.experiment, 'best.pth'))['model_state_dict'])
 test_acc = test(model)
