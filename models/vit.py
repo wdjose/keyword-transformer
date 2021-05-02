@@ -5,6 +5,9 @@ import torch.nn.functional as F
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 
+# Vision Transformer implementation adapted and edited from: https://github.com/lucidrains/vit-pytorch/blob/main/vit_pytorch/vit.py
+# License: https://github.com/lucidrains/vit-pytorch/blob/main/README.md
+
 class PreNorm(nn.Module):
     def __init__(self, dim, fn):
         super().__init__()
