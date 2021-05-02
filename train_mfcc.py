@@ -100,7 +100,8 @@ best_val_acc = 0.
 def val(model, epoch, logfile=None):
     model.eval()
     correct = 0
-    count = 0;
+    count = 0
+    val_count = 0
     val_loss = 0.
     with open(os.path.join('data', "v{}_mfcc".format(version), "val.pkl"), 'rb') as f:
         dataset_chunk = pickle.load(f)
@@ -113,14 +114,15 @@ def val(model, epoch, logfile=None):
                 output = model(data)
             val_loss += loss_fn(output.squeeze(), target).item()
             count += 1
+            val_count += target.shape[-1]
 
             pred = get_likely_index(output)
             correct += number_of_correct(pred, target)
     
     val_loss /= count
-    val_acc.append(correct/(512*6))
+    val_acc.append(correct/(val_count))
     val_losses.append(val_loss)
-    print(f"Epoch: {epoch}\tAccuracy: {correct}/{(512*6)} ({100. * correct / (512*6):.1f}%)\tLoss: {train_losses[-1]} {val_loss}")
+    print(f"Epoch: {epoch}\tAccuracy: {correct}/{(val_count)} ({100. * correct / (val_count):.1f}%)\tLoss: {train_losses[-1]} {val_loss}")
     if logfile is not None:
         logfile.write('{},{},{},{}\n'.format(epoch, train_losses[-1], val_losses[-1], val_acc[-1]))
         logfile.flush()
