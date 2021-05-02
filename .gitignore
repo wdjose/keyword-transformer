@@ -1,0 +1,5 @@
+.vscode/*
+data/*
+results/*
+kws_streaming
+**/__pycache__
