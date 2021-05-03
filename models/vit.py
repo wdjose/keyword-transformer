@@ -8,14 +8,6 @@ from einops.layers.torch import Rearrange
 # Vision Transformer implementation adapted and edited from: https://github.com/lucidrains/vit-pytorch/blob/main/vit_pytorch/vit.py
 # License: https://github.com/lucidrains/vit-pytorch/blob/main/README.md
 
-class PreNorm(nn.Module):
-    def __init__(self, dim, fn):
-        super().__init__()
-        self.norm = nn.LayerNorm(dim)
-        self.fn = fn
-    def forward(self, x, **kwargs):
-        return self.fn(self.norm(x), **kwargs)
-
 class FeedForward(nn.Module):
     def __init__(self, dim, hidden_dim, dropout = 0.):
         super().__init__()
@@ -59,19 +51,21 @@ class Attention(nn.Module):
         out = rearrange(out, 'b h n d -> b n (h d)')
         return self.to_out(out)
 
-class Transformer(nn.Module):
+class PreNormTransformer(nn.Module):
     def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.):
         super().__init__()
         self.layers = nn.ModuleList([])
         for _ in range(depth):
             self.layers.append(nn.ModuleList([
-                PreNorm(dim, Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout)),
-                PreNorm(dim, FeedForward(dim, mlp_dim, dropout=dropout))
+                nn.LayerNorm(dim),
+                nn.LayerNorm(dim),
+                Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout),
+                FeedForward(dim, mlp_dim, dropout=dropout)
             ]))
     def forward(self, x):
-        for attn, ff in self.layers:
-            x = attn(x) + x
-            x = ff(x) + x
+        for norm1, norm2, attn, ff in self.layers:
+            x = attn(norm1(x)) + x
+            x = ff(norm2(x)) + x
         return x
 
 class PostNormTransformer(nn.Module):
@@ -102,12 +96,6 @@ class ViT(nn.Module):
 
         assert pool in {'cls', 'mean'}, 'pool type must be either cls (cls token) or mean (mean pooling)'
 
-        # self.to_patch_embedding = nn.Sequential(
-        #     Rearrange('b (h p1) (w p2) -> b (h w) p1 p2', p1 = patch_x, p2 = patch_y),
-        #     nn.Linear(patch_dim, dim),
-        # )
-
-        # self.patch_rearrange = Rearrange('b (h p1) (w p2) -> b (h w) p1 p2', p1 = patch_x, p2 = patch_y)
         self.lin_proj = nn.Linear(img_y, dim, bias = False)
 
         self.g_feature = nn.Parameter(torch.randn(1, 1, dim))
@@ -116,15 +104,9 @@ class ViT(nn.Module):
         self.transformer = PostNormTransformer(dim, depth, heads, dim_head, mlp_dim, dropout)
 
         self.pool = pool
-        self.to_latent = nn.Identity()
-
-        self.mlp_head = nn.Sequential(
-            nn.LayerNorm(dim),
-            nn.Linear(dim, num_classes)
-        )
+        self.mlp_head = nn.Linear(dim, num_classes)
 
     def forward(self, img):
-        # x = self.patch_rearrange(img)
         x = self.lin_proj(img)
         b, T, _ = x.shape
 
@@ -136,5 +118,4 @@ class ViT(nn.Module):
 
         x = x.mean(dim = 1) if self.pool == 'mean' else x[:, 0]
 
-        x = self.to_latent(x)
         return self.mlp_head(x)
