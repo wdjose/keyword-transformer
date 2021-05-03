@@ -90,11 +90,9 @@ optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.1)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, epochs-warmup_epochs, verbose=True) if use_cosine_lr else None
 scheduler = GradualWarmupScheduler(optimizer, multiplier=1, total_epoch=warmup_epochs, after_scheduler=scheduler)
 
-
 loss_fn = F.cross_entropy
 if not args.no_label_smooth:
     loss_fn = LabelSmoothingLoss(num_classes, 0.1).to(device)
-
 
 best_val_acc = 0.
 def val(model, epoch, logfile=None):
@@ -127,8 +125,8 @@ def val(model, epoch, logfile=None):
         logfile.write('{},{},{},{}\n'.format(epoch, train_losses[-1], val_losses[-1], val_acc[-1]))
         logfile.flush()
     global best_val_acc
-    if ((correct/(512*6)) > best_val_acc):
-        best_val_acc = correct/(512*6)
+    if ((correct/(val_count)) > best_val_acc):
+        best_val_acc = correct/(val_count)
         torch.save({
             'epoch': epoch, 
             'model_state_dict': model.state_dict(), 
@@ -147,7 +145,6 @@ def get_likely_index(tensor):
 logfile = open(os.path.join('results', args.experiment, 'data.txt'), 'w')
 logfile.write('Epoch,Train Losses,Val Losses,Val Accuracy\n')
 
-# scaler = torch.cuda.amp.GradScaler()
 model.train()
 training_step = 0
 train_losses = []
@@ -169,12 +166,8 @@ for file_id in tqdm(range(1, 61)):
                     data = torch.from_numpy(data).float().to(device)
                     target = torch.from_numpy(target.astype(int)).to(device)
             
-                    # with torch.cuda.amp.autocast():
                     output = model(data)
-                    # assert output.dtype is torch.float16
                     loss = loss_fn(output.squeeze(), target)
-                    assert loss.dtype is torch.float32
-
                     loss.backward()
 
                 optimizer.step()
