@@ -86,7 +86,13 @@ def count_parameters(model):
 n = count_parameters(model)
 print("Number of parameters: %s" % n)
 
-optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.1)
+# get list of parameters excluding embeddings, bias, and layer normalization parameters for AdamW optimization
+paramlist = []
+for name, param in model.named_parameters():
+  if all(exclude not in name for exclude in ['bias', 'norm', 'g_feature', 'pos_embedding'] ):
+    paramlist.append(param)
+
+optimizer = optim.AdamW(paramlist, lr=0.001, weight_decay=0.1)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, epochs-warmup_epochs, verbose=True) if use_cosine_lr else None
 scheduler = GradualWarmupScheduler(optimizer, multiplier=1, total_epoch=warmup_epochs, after_scheduler=scheduler)
 

@@ -54,36 +54,39 @@ class Attention(nn.Module):
 class PreNormTransformer(nn.Module):
     def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.):
         super().__init__()
-        self.layers = nn.ModuleList([])
-        for _ in range(depth):
-            self.layers.append(nn.ModuleList([
-                nn.LayerNorm(dim),
-                nn.LayerNorm(dim),
-                Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout),
-                FeedForward(dim, mlp_dim, dropout=dropout)
-            ]))
+        self.depth = depth
+        self.norm1 = nn.ModuleList([])
+        self.norm2 = nn.ModuleList([])
+        self.attn = nn.ModuleList([])
+        self.ff = nn.ModuleList([])
+        for layer in range(depth):
+            self.norm1.append(nn.LayerNorm(dim))
+            self.norm2.append(nn.LayerNorm(dim))
+            self.attn.append(Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout))
+            self.ff.append(FeedForward(dim, mlp_dim, dropout=dropout))
     def forward(self, x):
-        for norm1, norm2, attn, ff in self.layers:
-            x = attn(norm1(x)) + x
-            x = ff(norm2(x)) + x
+        for i in range(self.depth):
+            x = self.attn[i](self.norm1[i](x)) + x
+            x = self.ff[i](self.norm2[i](x)) + x
         return x
 
 class PostNormTransformer(nn.Module):
     def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout=0.):
         super().__init__()
-        self.layers = nn.ModuleList([])
-        for _ in range(depth):
-            self.layers.append(nn.ModuleList([
-                nn.LayerNorm(dim),
-                nn.LayerNorm(dim),
-                Attention(dim, heads=heads, dim_head=dim_head, 
-                    dropout=dropout),
-                FeedForward(dim, mlp_dim, dropout=dropout)
-            ]))
+        self.depth = depth
+        self.norm1 = nn.ModuleList([])
+        self.norm2 = nn.ModuleList([])
+        self.attn = nn.ModuleList([])
+        self.ff = nn.ModuleList([])
+        for layer in range(depth):
+            self.norm1.append(nn.LayerNorm(dim))
+            self.norm2.append(nn.LayerNorm(dim))
+            self.attn.append(Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout))
+            self.ff.append(FeedForward(dim, mlp_dim, dropout=dropout))
     def forward(self, x):
-        for norm1, norm2, attn, ff in self.layers:
-            x = norm1(attn(x) + x)
-            x = norm2(ff(x) + x)
+        for i in range(self.depth):
+            x = self.norm1[i](self.attn[i](x) + x)
+            x = self.norm2[i](self.ff[i](x) + x)
         return x
 
 class ViT(nn.Module):
