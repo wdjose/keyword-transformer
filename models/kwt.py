@@ -6,7 +6,8 @@ from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 
 # Vision Transformer implementation adapted and edited from: https://github.com/lucidrains/vit-pytorch/blob/main/vit_pytorch/vit.py
-# License: https://github.com/lucidrains/vit-pytorch/blob/main/README.md
+# Specific implementation details based on https://arxiv.org/pdf/2104.00769.pdf
+# License: https://github.com/lucidrains/vit-pytorch/blob/main/LICENSE
 
 class FeedForward(nn.Module):
     def __init__(self, dim, hidden_dim, dropout = 0.):
@@ -89,7 +90,7 @@ class PostNormTransformer(nn.Module):
             x = self.norm2[i](self.ff[i](x) + x)
         return x
 
-class ViT(nn.Module):
+class KWT(nn.Module):
     def __init__(self, *, img_x, img_y, patch_x, patch_y, num_classes, dim, depth, heads, mlp_dim, pool = 'cls', channels = 3, dim_head = 64, dropout = 0., emb_dropout = 0.):
         super().__init__()
         assert img_x % patch_x == 0, 'Image dimensions must be divisible by the patch size.'
