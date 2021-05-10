@@ -1,0 +1,6 @@
+torch==1.8.1
+torchvision==0.9.1
+tensorflow==2.4.1
+numpy==1.19.2
+tqdm==4.60.0
+einops==0.3.0

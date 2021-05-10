@@ -16,7 +16,7 @@ Replicated model performance on v1 and v2 datasets vs literature data:
     </tbody>
 </table>
 
-_Note regarding number of parameters: following the model details in the paper, KWT-2 and KWT-3 have the same number of parameters as the paper, but KWT-1 has less. The source of the discrepancy is still being investigated, but this might have an effect on the model performance._
+_Note regarding number of parameters: following the model details in the paper, KWT-2 and KWT-3 have the same number of parameters as the paper, but KWT-1 has less. The source of the discrepancy is still being investigated, but this might be related to the observed model performance degradation._
 
 ## Setup
 
@@ -52,4 +52,4 @@ Train kwt1, kwt2, and kwt3 variants on v1 and v2 datasets with no distillation (
 ```bash
 bash train.sh
 ```
-For the purposes of this repository, version=1 (data1) corresponds to v1-12 (12 labels), version=2 (data2) corresponds to v2-12 (12 labels), and version=3 (data3) corresponds to v2-35 (35 labels). So technically, "version=3" refers to the modified v2 dataset as defined by the paper [Streaming Keyword Spotting on Mobile Devices](https://arxiv.org/abs/2005.06720), from which the data augmentation code came from (the `kws_streaming` repository exported from above). 
+For the purposes of this repository, version=1 (data1) corresponds to v1-12 (12 labels), version=2 (data2) corresponds to v2-12 (12 labels), and version=3 (data3) corresponds to v2-35 (35 labels). So technically, "version=3" refers to the modified v2 dataset (with 35 labels) as defined by the paper [Streaming Keyword Spotting on Mobile Devices](https://arxiv.org/abs/2005.06720), from which the data augmentation code came (the `kws_streaming` repository exported from above). 
