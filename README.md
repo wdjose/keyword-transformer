@@ -1,34 +1,43 @@
-# KWS Transformer
+# Keyword Transformer
 
-This repository contains PyTorch code replicating the paper [Keyword Transformer: A Self-Attention Model for Keyword Spotting](https://arxiv.org/abs/2104.00769). Currently, KWT-1, KWT-2, and KWT-3 without distillation, with 40x1 input patches from the spectrogram. Distillation token (from MHAtt-RNN), support for other sizes of input patches, and support for V2-12 dataset evaluation to follow. 
+This repository contains PyTorch code replicating the paper [Keyword Transformer: A Self-Attention Model for Keyword Spotting](https://arxiv.org/abs/2104.00769). Currently, KWT-1, KWT-2, and KWT-3 without distillation, with 40x1 input patches from the spectrogram, are supported. Distillation token (from MHAtt-RNN) and support for other sizes of input patches are to follow. 
 
-Current model performance on v1 and v2 datasets (tweaks and improvements on-going): 
+Replicated model performance on v1 and v2 datasets vs literature data: 
 
-|       | V1-12 | V2-35 |
-|-------|-------|-------|
-| KWT-3 | 96.6% | 97.1% |
-| KWT-2 | 96.3% | 97.0% |
-| KWT-1 | 95.9% | 95.9% |
+<table>
+    <thead>
+        <tr><th></th><th colspan=2>V1-12 Accuracy</th><th colspan=2>V2-12 Accuracy</th><th colspan=2>V2-35 Accuracy</th><th colspan=2># Parameters</th></tr>
+        <tr><th></th><th>Replicated</th><th>Paper</th><th>Replicated</th><th>Paper</th><th>Replicated</th><th>Paper</th><th>Replicated</th><th>Paper</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>KWT-3</td><td>95.94%</td><td>97.24%</td><td>97.40%</td><td>98.54%</td><td>95.72%</td><td>97.51%</td><td>557k</td><td>607k</td></tr>
+        <tr><td>KWT-2</td><td>95.46%</td><td>97.36%</td><td>97.08%</td><td>98.21%</td><td>95.85%</td><td>97.53%</td><td>2,394k</td><td>2,394k</td></tr>
+        <tr><td>KWT-1</td><td>95.03%</td><td>97.05%</td><td>95.99%</td><td>97.72%</td><td>94.75%</td><td>96.85%</td><td>5,361k</td><td>5,361k</td></tr>
+    </tbody>
+</table>
+
+_Note regarding number of parameters: following the model details in the paper, KWT-2 and KWT-3 have the same number of parameters as the paper, but KWT-1 has less. The source of the discrepancy is still being investigated, but this might have an effect on the model performance._
 
 ## Setup
 
 Clone the repository: 
 ```bash
-git clone https://github.com/wdjose/kws-transformer.git
-cd kws-transformer
+git clone https://github.com/wdjose/keyword-transformer.git
+cd keyword-transformer
 ```
 
 Create the google-speech-commands folder and download and extract the google-speech-commands dataset:
 ```bash
-mkdir data
-mkdir data/google-speech-commands
+mkdir -p data/google-speech-commands
 cd data/google-speech-commands
-mkdir data1 data2
+mkdir -p data1 data2 data3
 wget https://storage.googleapis.com/download.tensorflow.org/data/speech_commands_v0.01.tar.gz
 wget https://storage.googleapis.com/download.tensorflow.org/data/speech_commands_v0.02.tar.gz
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies 'https://docs.google.com/uc?export=download&id=1OAN3h4uffi5HS7eb7goklWeI2XPm1jCS' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1OAN3h4uffi5HS7eb7goklWeI2XPm1jCS" -O data_all_v2.zip && rm -rf /tmp/cookies.txt
 tar -xzf speech_commands_v0.01.tar.gz -C data1
 tar -xzf speech_commands_v0.02.tar.gz -C data2
-rm speech_commands_v0.01.tar.gz speech_commands_v0.02.tar.gz
+unzip data_all_v2.zip -d data3
+rm speech_commands_v0.01.tar.gz speech_commands_v0.02.tar.gz data_all_v2.zip
 cd ../..
 ```
 
@@ -39,12 +48,8 @@ svn export https://github.com/google-research/google-research/trunk/kws_streamin
 
 ## Replicate Original Keyword Transformer Models
 
-Run data augmentation generation script (this runs using TensorFlow and pre-generates all 12M augmented MFCC samples for v1 and v2 datasets): 
+Train kwt1, kwt2, and kwt3 variants on v1 and v2 datasets with no distillation (this generates 12M augmented MFCC samples with TensorFlow for v1 and v2 datasets):
 ```bash
-bash datagen.sh
+bash train.sh
 ```
-
-Train kws1, kws2, and kws3 variants on v1 and v2 datasets (no distillation): 
-```bash
-bash train_mfcc.sh
-```
+For the purposes of this repository, version=1 (data1) corresponds to v1-12 (12 labels), version=2 (data2) corresponds to v2-12 (12 labels), and version=3 (data3) corresponds to v2-35 (35 labels). So technically, "version=3" refers to the modified v2 dataset as defined by the paper [Streaming Keyword Spotting on Mobile Devices](https://arxiv.org/abs/2005.06720), from which the data augmentation code came from (the `kws_streaming` repository exported from above). 
