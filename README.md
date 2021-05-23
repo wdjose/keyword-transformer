@@ -10,9 +10,9 @@ Replicated model performance on v1 and v2 datasets vs literature data:
         <tr><th></th><th>Replicated</th><th>Paper</th><th>Replicated</th><th>Paper</th><th>Replicated</th><th>Paper</th><th>Replicated</th><th>Paper</th></tr>
     </thead>
     <tbody>
-        <tr><td>KWT-3</td><td>95.94%</td><td>97.24%</td><td>97.40%</td><td>98.54%</td><td>95.72%</td><td>97.51%</td><td>557k</td><td>607k</td></tr>
+        <tr><td>KWT-3</td><td>95.94%</td><td>97.24%</td><td>97.40%</td><td>98.54%</td><td>95.72%</td><td>97.51%</td><td>5,361k</td><td>5,361k</td></tr>
         <tr><td>KWT-2</td><td>95.46%</td><td>97.36%</td><td>97.08%</td><td>98.21%</td><td>95.85%</td><td>97.53%</td><td>2,394k</td><td>2,394k</td></tr>
-        <tr><td>KWT-1</td><td>95.03%</td><td>97.05%</td><td>95.99%</td><td>97.72%</td><td>94.75%</td><td>96.85%</td><td>5,361k</td><td>5,361k</td></tr>
+        <tr><td>KWT-1</td><td>95.03%</td><td>97.05%</td><td>95.99%</td><td>97.72%</td><td>94.75%</td><td>96.85%</td><td>557k</td><td>607k</td></tr>
     </tbody>
 </table>
 
